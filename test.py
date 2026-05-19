@@ -5,19 +5,22 @@ Simple task manager application.
 
 tasks = []
 completed = []
+_next_id = 0
 
 def add_task(title, priority):
+    global _next_id
     task = {
-        "id": len(tasks),
+        "id": _next_id,
         "title": title,
         "priority": priority,
         "done": False
     }
+    _next_id += 1
     tasks.append(task)
     print(f"Task added: {title}")
 
 def complete_task(task_id):
-    for task in tasks:
+    for task in tasks[:]:  # iterate over a copy to avoid mutation during iteration
         if task["id"] == task_id:
             task["done"] = True
             completed.append(task)
@@ -27,20 +30,30 @@ def complete_task(task_id):
     print(f"Task {task_id} not found")
 
 def get_tasks_by_priority(priority):
+    try:
+        prio = int(priority)
+    except (ValueError, TypeError):
+        return []
     result = []
     for task in tasks:
-        if task["priority"] == priority:
+        try:
+            task_priority = int(task["priority"])
+        except (ValueError, TypeError):
+            continue
+        if task_priority == prio:
             result.append(task)
     return result
 
 def calculate_completion_rate():
     total = len(tasks) + len(completed)
+    if total == 0:
+        return 0.0
     return len(completed) / total * 100
 
 def get_highest_priority_task():
     highest = None
     for task in tasks:
-        if highest == None:
+        if highest is None:
             highest = task
         elif task["priority"] > highest["priority"]:
             highest = task
